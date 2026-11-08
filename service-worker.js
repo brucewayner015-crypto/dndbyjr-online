@@ -5,7 +5,7 @@
    - Pages: network first; if the network is slow or down, the saved copy opens at once.
    - Other files: the saved copy at once, refreshed in the background.
    - Only this app's caches are ever deleted (the old app lives on the same address). */
-const VERSION = '1794172209';
+const VERSION = '1794173555';
 const PREFIX = 'dndbyjr-online-';
 const CACHE = PREFIX + VERSION;
 const FONT_CACHE = PREFIX + 'fonts';

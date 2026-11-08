@@ -24306,7 +24306,23 @@ html.ol-need-login, html.ol-need-login body{overflow:hidden;}
       olMsg('');
       /* offer the browser's password manager to remember it */
       try{ if (window.PasswordCredential && navigator.credentials) navigator.credentials.store(new window.PasswordCredential({id:email, password:pass, name:email})).catch(function(){}); }catch(e){}
-    }).catch(function(err){ olMsg(olErrText(err), true); }).then(function(){ btn.disabled = false; });
+    }).catch(function(err){
+      olMsg(olErrText(err), true);
+      if (String(err && err.code) === 'auth/operation-not-allowed') olDiag().then(function(t){ olMsg(olErrText(err) + ' Проверка: ' + t, true); });
+    }).then(function(){ btn.disabled = false; });
+  }
+  /* asks the sign-in server directly: which project the key belongs to and whether password sign-up is allowed
+     (a deliberately too-short password: nothing gets created) */
+  function olDiag(){
+    var key = encodeURIComponent(FIREBASE_CONFIG.apiKey), base = 'https://identitytoolkit.googleapis.com/v1/', out = [];
+    var p1 = fetch(base + 'projects?key=' + key).then(function(r){ return r.json(); }).then(function(j){
+      out.push('проект ключа — ' + (j.projectId || (j.error && j.error.message) || '?'));
+    }).catch(function(){ out.push('проект ключа — нет связи'); });
+    var p2 = fetch(base + 'accounts:signUp?key=' + key, {method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:'probe' + Date.now() + '@example.com', password:'1', returnSecureToken:true})}).then(function(r){ return r.json(); }).then(function(j){
+      out.push('ответ сервера — ' + ((j.error && j.error.message) || 'регистрация разрешена'));
+    }).catch(function(){ out.push('ответ сервера — нет связи'); });
+    return Promise.all([p1, p2]).then(function(){ return out.join('; ') + '.'; });
   }
   function olForgot(){
     var g = document.getElementById('olGate'), email = olTxt(g.querySelector('#olEmail').value).toLowerCase();
